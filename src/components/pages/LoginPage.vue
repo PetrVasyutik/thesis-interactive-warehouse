@@ -4,10 +4,13 @@ import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
+import { QInput, QBtn, QCard, QCardSection } from 'quasar';
 
 const authStore = useAuthStore();
 const router = useRouter();
 const errorMessage = ref('');
+
+const isPwd = ref(true);
 
 const MOCK_USER = { username: 'admin', password: 'admin123' };
 
@@ -44,40 +47,52 @@ function handleLogout() {
 
 <template>
   <div>
-    <h1>Страница входа</h1>
-    <form @submit.prevent="onSubmit">
-      <div>
-        <label for="username">Логин</label>
-        <input
-          id="username"
-          v-model="userNameAttr"
-          v-bind="userNameMeta"
-          type="text"
-          autocomplete="username"
-        />
-        <p v-if="errors.userName" style="color: red">{{ errors.userName }}</p>
-      </div>
-      <div>
-        <label for="password">Пароль</label>
-        <input
-          id="password"
-          v-model="passwordAttr"
-          v-bind="passwordMeta"
-          type="password"
-          autocomplete="current-password"
-        />
-      </div>
-      <button type="submit">Войти</button>
-      <p v-if="errorMessage" style="color: red">{{ errorMessage }}</p>
-    </form>
-
-    <hr />
-    <button @click="handleLogout">Выйти</button>
-    <button type="button" @click="router.push('/warehouse')">На склад</button>
-
-    <div>
-      <p>Статус: {{ authStore.isAuthenticated ? 'Залогинен' : 'Не залогинен' }}</p>
-      <p>Токен: {{ authStore.token || 'Нет токена' }}</p>
-    </div>
+    <q-card class="login-card" flat bordered>
+      <q-card-section class="q-pa-lg">
+        <h1 class="q-mt-none q-md-mb text-primary">Вход в систему</h1>
+        <form @submit.prevent="onSubmit" class="q-gutter-md">
+          <q-input
+            v-model="userNameAttr"
+            v-bind="userNameMeta"
+            outlined
+            label="Логин"
+            type="text"
+            autocomplete="username"
+            :error="!!errors.userName"
+            :error-message="errors.userName"
+            class="q-mb-sm"
+          />
+          <q-input
+            v-model="passwordAttr"
+            v-bind="passwordMeta"
+            outlined
+            label="Пароль"
+            :type="isPwd ? 'password' : 'text'"
+            autocomplete="current-password"
+            :error="!!errors.password"
+            :error-message="errors.password"
+            class="q-mb-sm"
+          >
+            <template #append>
+              <q-icon
+                :name="isPwd ? 'visibility_off' : 'visibility'"
+                class="cursor-pointer"
+                @click="isPwd = !isPwd"
+              />
+            </template>
+          </q-input>
+          <div class="flex justify-center">
+            <q-btn
+              type="submit"
+              color="primary"
+              label="Войти"
+              unelevated
+              class="full-width"
+            />
+          </div>
+          <p v-if="errorMessage" class="text-negative q-mt-sm">{{ errorMessage }}</p>
+        </form>
+      </q-card-section>
+    </q-card>
   </div>
 </template>
