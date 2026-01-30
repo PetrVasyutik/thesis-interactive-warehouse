@@ -3,6 +3,7 @@ import { RouterNames } from './routerNames';
 import LoginPage from '@/components/pages/LoginPage.vue';
 import ProfilePage from '@/components/pages/ProfilePage.vue';
 import WarehousePage from '@/components/pages/WarehousePage.vue';
+import MainLayout from '@/layouts/MainLayout.vue';
 import { useAuthStore } from '@/store/authStore';
 
 const router = createRouter({
@@ -18,16 +19,21 @@ const router = createRouter({
       component: LoginPage,
     },
     {
-      path: '/profile',
-      name: RouterNames.Profile,
-      component: ProfilePage,
+      path: '/',
+      component: MainLayout,
       meta: { requiresAuth: true },
-    },
-    {
-      path: '/warehouse',
-      name: RouterNames.Warehouse,
-      component: WarehousePage,
-      meta: { requiresAuth: true },
+      children: [
+        {
+          path: 'profile',
+          name: RouterNames.Profile,
+          component: ProfilePage,
+        },
+        {
+          path: 'warehouse',
+          name: RouterNames.Warehouse,
+          component: WarehousePage,
+        },
+      ],
     },
   ],
 });

@@ -2,11 +2,13 @@
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
+import { useUserStore } from '@/store/userStore';
 import { useForm } from 'vee-validate';
 import * as yup from 'yup';
 import { QInput, QBtn, QCard, QCardSection } from 'quasar';
 
 const authStore = useAuthStore();
+const userStore = useUserStore();
 const router = useRouter();
 const errorMessage = ref('');
 
@@ -33,6 +35,7 @@ const [passwordAttr, passwordMeta] = defineField('password');
 const onSubmit = handleSubmit((values) => {
   errorMessage.value = '';
   if (values.userName === MOCK_USER.username && values.password === MOCK_USER.password) {
+    userStore.setUser('Иван Иванов', 'admin@example.com');
     authStore.login('fake-token-123');
     router.push('/warehouse');
   } else {
@@ -42,6 +45,7 @@ const onSubmit = handleSubmit((values) => {
 
 function handleLogout() {
   authStore.logout();
+  userStore.clearUser();
 };
 </script>
 
