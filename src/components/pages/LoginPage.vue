@@ -35,9 +35,9 @@ const [passwordAttr, passwordMeta] = defineField('password');
 const onSubmit = handleSubmit((values) => {
   errorMessage.value = '';
   if (values.userName === MOCK_USER.username && values.password === MOCK_USER.password) {
-    userStore.setUser('Иван Иванов', 'admin@example.com');
+    userStore.setUser('Иван', 'admin@example.com', 'Иванов Иван Иванович', '+72345678900', 'Отдел учета', 'Кладовщик');
     authStore.login('fake-token-123');
-    router.push('/warehouse');
+    router.push('/profile');
   } else {
     errorMessage.value = 'Неверное имя пользователя или пароль';
   }
