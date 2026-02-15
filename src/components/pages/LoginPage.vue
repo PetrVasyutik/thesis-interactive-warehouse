@@ -32,6 +32,8 @@ const { handleSubmit, errors, defineField } = useForm({
 const [userNameAttr, userNameMeta] = defineField('userName');
 const [passwordAttr, passwordMeta] = defineField('password');
 
+const currentYear = new Date().getFullYear();
+
 const onSubmit = handleSubmit((values) => {
   errorMessage.value = '';
   if (values.userName === MOCK_USER.username && values.password === MOCK_USER.password) {
@@ -98,5 +100,32 @@ function handleLogout() {
         </form>
       </q-card-section>
     </q-card>
+    <footer class="login-footer">
+      <span class="login-footer__copyright">© {{ currentYear }} Интерактивный склад</span>
+      <span class="login-footer__theme">Визуализация складских помещений</span>
+    </footer>
   </div>
 </template>
+
+<style lang="scss" scoped>
+.login-footer {
+  margin-top: 2rem;
+  padding: 12px 24px;
+  background-color: #f5f5f5;
+  color: #666;
+  font-size: 13px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.login-footer__copyright {
+  font-weight: 500;
+}
+
+.login-footer__theme {
+  opacity: 0.9;
+}
+</style>
