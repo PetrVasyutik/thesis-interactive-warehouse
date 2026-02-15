@@ -6,7 +6,9 @@ export class WarehouseEngine {
   stage: Konva.Stage;
   layer: Konva.Layer;
 
-  // Коллбеки для кликов по стеллажам (назначаются снаружи)
+  // Коллбеки: по зоне — инфо по зоне, по стеллажу — инфо по стеллажу + добавить/убрать паллету
+  onZoneSelect: ((zoneId: number) => void) | null = null;
+  onShelfSelect: ((shelfId: number) => void) | null = null;
   onShelfLeftClick: ((shelfId: number) => void) | null = null;
   onShelfRightClick: ((shelfId: number) => void) | null = null;
 
@@ -117,11 +119,18 @@ export class WarehouseEngine {
 
     const zoneLabel = new Konva.Text({
       x: minX - padding + 8,
-      y: minY - padding + 4,
+      y: minY - padding + 2,
       text: zone.name,
-      fontSize: 14,
+      fontSize: 16,
       fontFamily: 'Arial',
       fill: '#333',
+      listening: true,
+    });
+
+    zoneLabel.on('click', () => {
+      if (this.onZoneSelect) {
+        this.onZoneSelect(zone.id);
+      }
     });
 
     this.layer.add(zoneRect, zoneLabel);
@@ -139,7 +148,7 @@ export class WarehouseEngine {
         strokeWidth: 1,
       });
 
-      // Интерактивность: левый клик — добавить, правый — убрать паллету
+      // Клик по прямоугольнику — только добавить/убрать паллету (инфо по стеллажу — по клику на подпись)
       rect.on('click', (e) => {
         if (e.evt.button === 2) {
           e.evt.preventDefault();
@@ -153,7 +162,26 @@ export class WarehouseEngine {
         }
       });
 
-      this.layer.add(rect);
+      // Подпись под стеллажом по центру; клик по подписи — показать инфо по стеллажу
+      const shelfLabel = new Konva.Text({
+        x: shelf.x,
+        y: shelf.y + shelf.height + 5,
+        width: shelf.width,
+        text: shelf.name,
+        fontSize: 12,
+        fontFamily: 'Arial',
+        fill: '#333',
+        align: 'center',
+        listening: true,
+      });
+
+      shelfLabel.on('click', () => {
+        if (this.onShelfSelect) {
+          this.onShelfSelect(shelf.id);
+        }
+      });
+
+      this.layer.add(rect, shelfLabel);
     });
   }
 

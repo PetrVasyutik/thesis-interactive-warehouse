@@ -1,4 +1,4 @@
-import type { Warehouse } from '../models/warehouse';
+import type { Shelf, Warehouse, Zone } from '../models/warehouse';
 import { WarehouseEngine } from '../engine/WarehouseEngine';
 
 // Отвечает за бизнес-логику склада и дергает движок для перерисовки
@@ -57,5 +57,19 @@ export class WarehouseController {
     this.warehouse.unassignedPallets += 1;
     shelf.currentPallets -= 1;
     this.engine.renderWarehouse(this.warehouse);
+  }
+
+  getShelfAndZone(shelfId: number): { shelf: Shelf; zone: Zone } | null {
+    for (const zone of this.warehouse.zones) {
+      const shelf = zone.shelves.find((s) => s.id === shelfId);
+      if (shelf) {
+        return { shelf, zone };
+      }
+    }
+    return null;
+  }
+
+  getZoneById(zoneId: number): Zone | null {
+    return this.warehouse.zones.find((z) => z.id === zoneId) ?? null;
   }
 }
