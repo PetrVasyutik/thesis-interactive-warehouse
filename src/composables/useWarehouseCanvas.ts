@@ -11,6 +11,7 @@ export function useWarehouseCanvas() {
   /** Выбранная зона (при клике на название зоны); zoneId — для обновления данных после изменения паллет */
   const selectedZoneInfo = ref<{
     zoneId: number;
+    blockName: string;
     zoneName: string;
     zoneCurrentPallets: number;
     zoneMaxCapacity: number;
@@ -19,6 +20,7 @@ export function useWarehouseCanvas() {
   /** Выбранный стеллаж (при клике на стеллаж): стеллаж + данные по зоне */
   const selectedShelfInfo = ref<{
     shelf: Shelf;
+    blockName: string;
     zoneName: string;
     zoneCurrentPallets: number;
     zoneMaxCapacity: number;
@@ -28,24 +30,44 @@ export function useWarehouseCanvas() {
   let engine: WarehouseEngine | null = null;
   let controller: WarehouseController | null = null;
 
+  const blocksSummary = ref<
+    {
+      blockName: string;
+      currentPallets: number;
+      maxCapacity: number;
+      fillPercent: number;
+    }[]
+  >([]);
+
   function createInitialWarehouse(): Warehouse {
-    // Две зоны, в каждой по 5 стеллажей
+    // Несколько зон в виде 3 колонок по 5 зон.
+    // Нижние зоны выходят за пределы текущего видимого окна, чтобы было что панорамировать.
     const shelfWidth = 80;
-    const shelfHeight = 120;
     const gapX = 20;
-    const startX = 80;
+    const startColumnX = 80;
+    const columnGap = 160; // горизонтальный отступ между блоками зон
+    const rowsPerColumn = 5;
+    const firstRowY = 120;
+    const rowStepY = 160; // расстояние между зонами по вертикали
 
     let nextShelfId = 1;
 
-    const makeZone = (id: number, name: string, color: string, baseY: number) => {
+    const makeZone = (
+      id: number,
+      name: string,
+      color: string,
+      blockName: string,
+      baseX: number,
+      baseY: number,
+    ) => {
       const letter = name.replace('Зона ', '');
       const shelves = Array.from({ length: 5 }).map((_, index) => ({
         id: nextShelfId++,
         name: `Стеллаж ${letter}-${index + 1}`,
-        x: startX + index * (shelfWidth + gapX),
+        x: baseX + index * (shelfWidth + gapX),
         y: baseY,
         width: shelfWidth,
-        height: shelfHeight,
+        height: 120,
         maxCapacity: 10,
         currentPallets: 0,
       }));
@@ -54,16 +76,30 @@ export function useWarehouseCanvas() {
         id,
         name,
         color,
+        blockName,
         shelves,
       };
     };
 
+    const zones: Warehouse['zones'] = [];
+    const colors = ['#e3f2fd', '#e8f5e9', '#fff3e0', '#e0f7fa'];
+    let zoneId = 1;
+
+    for (let col = 0; col < 3; col += 1) {
+      const baseX = startColumnX + col * ((shelfWidth + gapX) * 5 + columnGap);
+      const blockName = `Блок ${col + 1}`;
+      for (let row = 0; row < rowsPerColumn; row += 1) {
+        const baseY = firstRowY + row * rowStepY;
+        const zoneName = `Зона ${String.fromCharCode(65 + zoneId - 1)}`; // A, B, C...
+        const color = colors[(zoneId - 1) % colors.length];
+        zones.push(makeZone(zoneId, zoneName, color, blockName, baseX, baseY));
+        zoneId += 1;
+      }
+    }
+
     return {
-      unassignedPallets: 120,
-      zones: [
-        makeZone(1, 'Зона A', '#e3f2fd', 120),
-        makeZone(2, 'Зона B', '#e8f5e9', 280),
-      ],
+      unassignedPallets: 500,
+      zones,
     };
   }
 
@@ -76,6 +112,34 @@ export function useWarehouseCanvas() {
     engine = new WarehouseEngine(container);
     const initialWarehouse = createInitialWarehouse();
     controller = new WarehouseController(engine, initialWarehouse);
+
+    function refreshBlocksSummary(): void {
+      if (!controller) {
+        return;
+      }
+      const warehouse = controller.getWarehouse();
+      const totals = new Map<
+        string,
+        { current: number; max: number }
+      >();
+
+      warehouse.zones.forEach((zone) => {
+        zone.shelves.forEach((shelf) => {
+          const key = zone.blockName;
+          const prev = totals.get(key) ?? { current: 0, max: 0 };
+          prev.current += shelf.currentPallets;
+          prev.max += shelf.maxCapacity;
+          totals.set(key, prev);
+        });
+      });
+
+      blocksSummary.value = Array.from(totals.entries()).map(([blockName, { current, max }]) => ({
+        blockName,
+        currentPallets: current,
+        maxCapacity: max,
+        fillPercent: max > 0 ? Math.round((current / max) * 100) : 0,
+      }));
+    }
 
     // Клик по названию зоны — показать инфо по зоне
     engine.onZoneSelect = (zoneId: number) => {
@@ -91,6 +155,7 @@ export function useWarehouseCanvas() {
           zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
         selectedZoneInfo.value = {
           zoneId: zone.id,
+          blockName: zone.blockName,
           zoneName: zone.name,
           zoneCurrentPallets,
           zoneMaxCapacity,
@@ -115,6 +180,7 @@ export function useWarehouseCanvas() {
           zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
         selectedShelfInfo.value = {
           shelf,
+          blockName: zone.blockName,
           zoneName: zone.name,
           zoneCurrentPallets,
           zoneMaxCapacity,
@@ -124,7 +190,7 @@ export function useWarehouseCanvas() {
         selectedShelfInfo.value = null;
       }
     };
-    /** После изменения паллет — обновить данные в открытой инфо-панели */
+    /** После изменения паллет — обновить данные в открытой инфо-панели и сводку по блокам */
     function refreshSelectedInfo(): void {
       if (!controller) {
         return;
@@ -139,6 +205,7 @@ export function useWarehouseCanvas() {
             zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
           selectedShelfInfo.value = {
             shelf,
+            blockName: zone.blockName,
             zoneName: zone.name,
             zoneCurrentPallets,
             zoneMaxCapacity,
@@ -155,6 +222,7 @@ export function useWarehouseCanvas() {
             zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
           selectedZoneInfo.value = {
             zoneId: zone.id,
+            blockName: zone.blockName,
             zoneName: zone.name,
             zoneCurrentPallets,
             zoneMaxCapacity,
@@ -162,6 +230,8 @@ export function useWarehouseCanvas() {
           };
         }
       }
+
+      refreshBlocksSummary();
     }
 
     engine.onShelfLeftClick = (shelfId: number) => {
@@ -176,6 +246,9 @@ export function useWarehouseCanvas() {
         refreshSelectedInfo();
       }
     };
+
+    // Инициализируем сводку по блокам при первом монтировании
+    refreshBlocksSummary();
   }
 
   function unmount() {
@@ -205,6 +278,7 @@ export function useWarehouseCanvas() {
     containerRef,
     selectedZoneInfo,
     selectedShelfInfo,
+    blocksSummary,
     addPalletToShelf,
     removePalletFromShelf,
   };

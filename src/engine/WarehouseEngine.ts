@@ -66,6 +66,49 @@ export class WarehouseEngine {
 
     this.layer.add(poolRect, poolLabel, poolCount);
 
+    // Подписи блоков (колонок) над группами зон
+    const blocks = new Map<
+      string,
+      { minX: number; maxX: number; minY: number }
+    >();
+
+    warehouse.zones.forEach((zone) => {
+      if (zone.shelves.length === 0) {
+        return;
+      }
+      const minX = Math.min(...zone.shelves.map((s) => s.x));
+      const maxX = Math.max(...zone.shelves.map((s) => s.x + s.width));
+      const minY = Math.min(...zone.shelves.map((s) => s.y));
+
+      const block = blocks.get(zone.blockName);
+      if (!block) {
+        blocks.set(zone.blockName, { minX, maxX, minY });
+      } else {
+        block.minX = Math.min(block.minX, minX);
+        block.maxX = Math.max(block.maxX, maxX);
+        block.minY = Math.min(block.minY, minY);
+      }
+    });
+
+    blocks.forEach((bounds, blockName) => {
+      const centerX = (bounds.minX + bounds.maxX) / 2;
+      const labelY = bounds.minY - 40;
+
+      const blockLabel = new Konva.Text({
+        x: centerX,
+        y: labelY,
+        text: blockName,
+        fontSize: 16,
+        fontFamily: 'Arial',
+        fill: '#333',
+        align: 'center',
+      });
+      // Центруем текст по X
+      blockLabel.offsetX(blockLabel.width() / 2);
+
+      this.layer.add(blockLabel);
+    });
+
     warehouse.zones.forEach((zone) => {
       this.renderZone(zone);
     });

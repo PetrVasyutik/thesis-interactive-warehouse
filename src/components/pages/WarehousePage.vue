@@ -2,7 +2,7 @@
 import { useWarehouseCanvas } from '../../composables/useWarehouseCanvas';
 
 // Берём containerRef из composable, чтобы он создавал/уничтожал Konva-движок
-const { containerRef, selectedZoneInfo, selectedShelfInfo } = useWarehouseCanvas();
+const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = useWarehouseCanvas();
 </script>
 
 <template>
@@ -44,13 +44,31 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo } = useWarehouseCanvas
       </div>
       <div ref="containerRef" class="warehouse__container"></div>
     <div class="warehouse__info">
+      <div class="warehouse__blocks-summary">
+        <h2 class="warehouse__info-title">Блоки</h2>
+        <ul class="warehouse__blocks-list">
+          <li
+            v-for="block in blocksSummary"
+            :key="block.blockName"
+            class="warehouse__blocks-item"
+          >
+            <strong>{{ block.blockName }}</strong>:
+            {{ block.currentPallets }} / {{ block.maxCapacity }} паллет
+            ({{ block.fillPercent }}%)
+          </li>
+        </ul>
+      </div>
       <div v-if="selectedZoneInfo" class="warehouse__zone-info">
-        <h2 class="warehouse__info-title">{{ selectedZoneInfo.zoneName }}</h2>
+        <h2 class="warehouse__info-title">
+          {{ selectedZoneInfo.blockName }} — {{ selectedZoneInfo.zoneName }}
+        </h2>
         <div>Паллет по зоне: {{ selectedZoneInfo.zoneCurrentPallets }} / {{ selectedZoneInfo.zoneMaxCapacity }}</div>
         <div>Заполненность зоны: {{ selectedZoneInfo.zoneFillPercent }}%</div>
       </div>
       <div v-if="selectedShelfInfo" class="warehouse__shelf-info">
-        <h2 class="warehouse__info-title">{{ selectedShelfInfo.zoneName }} — {{ selectedShelfInfo.shelf.name }}</h2>
+        <h2 class="warehouse__info-title">
+          {{ selectedShelfInfo.blockName }} — {{ selectedShelfInfo.zoneName }} — {{ selectedShelfInfo.shelf.name }}
+        </h2>
         <div>На стеллаже: {{ selectedShelfInfo.shelf.currentPallets }} / {{ selectedShelfInfo.shelf.maxCapacity }} паллет</div>
         <div>По зоне: {{ selectedShelfInfo.zoneCurrentPallets }} / {{ selectedShelfInfo.zoneMaxCapacity }} паллет</div>
         <div>Заполненность зоны: {{ selectedShelfInfo.zoneFillPercent }}%</div>
@@ -94,18 +112,33 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo } = useWarehouseCanvas
 
   &__info {
     box-sizing: border-box;
-    padding: 5px;
+    padding: 10px;
     box-shadow: 0px 0px 2px #929191;
   }
 
   &__info-title {
-    font-size: 24px;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     padding: 0;
     margin: 0;
     line-height: 1;
     margin-bottom: 10px;
-    margin-top: 50px;
+    margin-top: 20px;
+  }
+
+  &__blocks-summary {
+    margin-bottom: 20px;
+    text-align: left;
+  }
+
+  &__blocks-list {
+    padding-left: 18px;
+    margin: 8px 0 0;
+  }
+
+  &__blocks-item {
+    font-size: 14px;
+    margin-bottom: 4px;
   }
 }
 </style>

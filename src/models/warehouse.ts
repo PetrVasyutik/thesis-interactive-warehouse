@@ -13,6 +13,8 @@ export interface Zone {
   id: number;
   name: string;
   color: string;
+  /** Название блока (колонки), к которому относится зона: «Блок 1», «Блок 2», ... */
+  blockName: string;
   shelves: Shelf[];
 }
 
