@@ -52,7 +52,7 @@ function handleLogout() {
 </script>
 
 <template>
-  <div>
+  <div class="login-page">
     <q-card class="login-card" flat bordered>
       <q-card-section class="q-pa-lg">
         <h1 class="q-mt-none q-md-mb text-primary">Вход в систему</h1>
@@ -108,8 +108,22 @@ function handleLogout() {
 </template>
 
 <style lang="scss" scoped>
+.login-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 1240px;
+  max-width: 1920px;
+}
+
+.login-card {
+  margin-top: 50px;
+}
+
 .login-footer {
-  margin-top: 2rem;
+  margin-top: auto;
+  width: 100%;
   padding: 12px 24px;
   background-color: #f5f5f5;
   color: #666;
