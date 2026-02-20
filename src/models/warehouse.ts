@@ -22,3 +22,10 @@ export interface Warehouse {
   zones: Zone[];
   unassignedPallets: number;
 }
+
+/** Состояние склада для сохранения в localStorage (только изменяемые данные) */
+export interface WarehousePersistedState {
+  unassignedPallets: number;
+  /** shelfId -> currentPallets */
+  shelves: Record<number, number>;
+}

@@ -1,6 +1,10 @@
 import { onMounted, onUnmounted, ref } from 'vue';
 import { WarehouseEngine } from '../engine/WarehouseEngine';
-import { WarehouseController } from '../controllers/WarehouseController';
+import {
+  applyPersistedState,
+  loadPersistedState,
+  WarehouseController,
+} from '../controllers/WarehouseController';
 import type { Shelf, Warehouse } from '../models/warehouse';
 
 // Связующее звено между Vue и Canvas:
@@ -91,7 +95,8 @@ export function useWarehouseCanvas() {
       for (let row = 0; row < rowsPerColumn; row += 1) {
         const baseY = firstRowY + row * rowStepY;
         const zoneName = `Зона ${String.fromCharCode(65 + zoneId - 1)}`; // A, B, C...
-        const color = colors[(zoneId - 1) % colors.length];
+        const color =
+          colors[(zoneId - 1) % colors.length] ?? colors[0] ?? '#e3f2fd';
         zones.push(makeZone(zoneId, zoneName, color, blockName, baseX, baseY));
         zoneId += 1;
       }
@@ -111,6 +116,10 @@ export function useWarehouseCanvas() {
 
     engine = new WarehouseEngine(container);
     const initialWarehouse = createInitialWarehouse();
+    const savedState = loadPersistedState();
+    if (savedState) {
+      applyPersistedState(initialWarehouse, savedState);
+    }
     controller = new WarehouseController(engine, initialWarehouse);
 
     function refreshBlocksSummary(): void {
