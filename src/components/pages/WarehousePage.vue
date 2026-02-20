@@ -2,7 +2,7 @@
 import { useWarehouseCanvas } from '../../composables/useWarehouseCanvas';
 
 // Берём containerRef из composable, чтобы он создавал/уничтожал Konva-движок
-const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = useWarehouseCanvas();
+const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary, unassignedPallets } = useWarehouseCanvas();
 </script>
 
 <template>
@@ -34,6 +34,16 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = use
           </li>
         </ul>
 
+        <p><strong>Панорама склада:</strong></p>
+        <ul>
+          <li>
+            <strong>Перетаскивание за пустую область</strong> — зажмите левую кнопку мыши на свободном месте карты (не на зоне и не на стеллаже) и тяните: карта склада будет двигаться.
+          </li>
+          <li>
+            <strong>Средняя кнопка мыши</strong> (колесо) — можно панорамировать с любой точки: зажмите колесо и двигайте мышь.
+          </li>
+        </ul>
+
         <p><strong>Цветовое кодирование стеллажей (по проценту заполнения):</strong></p>
         <ul>
           <li><span style="color: #81c784; font-weight: 600;">Зелёный</span> — заполненность &lt; 50% (свободно).</li>
@@ -44,6 +54,10 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = use
       </div>
       <div ref="containerRef" class="warehouse__container"></div>
     <div class="warehouse__info">
+      <div class="warehouse__unassigned">
+        <h2 class="warehouse__info-title">Нераспределённые паллеты</h2>
+        <div class="warehouse__unassigned-count">{{ unassignedPallets }}</div>
+      </div>
       <div class="warehouse__blocks-summary">
         <h2 class="warehouse__info-title">Блоки</h2>
         <ul class="warehouse__blocks-list">
@@ -108,6 +122,9 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = use
     box-sizing: border-box;
     min-width: 1240px;
     height: 60vh;
+    border: 2px solid green;
+    border-radius: 4px;
+    margin: 10px;
   }
 
   &__info {
@@ -124,6 +141,21 @@ const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary } = use
     line-height: 1;
     margin-bottom: 10px;
     margin-top: 20px;
+  }
+
+  &__unassigned {
+    margin-bottom: 20px;
+    padding: 12px;
+    background: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    text-align: center;
+  }
+
+  &__unassigned-count {
+    font-size: 24px;
+    font-weight: 600;
+    color: #c62828;
   }
 
   &__blocks-summary {

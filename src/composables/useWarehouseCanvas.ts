@@ -42,6 +42,7 @@ export function useWarehouseCanvas() {
       fillPercent: number;
     }[]
   >([]);
+  const unassignedPallets = ref(0);
 
   function createInitialWarehouse(): Warehouse {
     // Несколько зон в виде 3 колонок по 5 зон.
@@ -148,6 +149,7 @@ export function useWarehouseCanvas() {
         maxCapacity: max,
         fillPercent: max > 0 ? Math.round((current / max) * 100) : 0,
       }));
+      unassignedPallets.value = warehouse.unassignedPallets;
     }
 
     // Клик по названию зоны — показать инфо по зоне
@@ -288,6 +290,7 @@ export function useWarehouseCanvas() {
     selectedZoneInfo,
     selectedShelfInfo,
     blocksSummary,
+    unassignedPallets,
     addPalletToShelf,
     removePalletFromShelf,
   };
