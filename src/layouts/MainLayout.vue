@@ -1,15 +1,26 @@
 <template>
   <q-layout view="hHh lpR fFf">
     <q-header class="main-layout q-pa-lg">
+      <div class="main-layout__header-inner">
+        <q-btn
+          v-if="route.name !== RouterNames.Profile"
+          color="primary"
+          label="Личный кабинет"
+          @click="goToProfile"
+        />
         <q-btn
           color="primary"
           label="Выйти"
           @click="handleLogout"
-        >
-        </q-btn>
+        />
+      </div>
     </q-header>
     <q-page-container>
-      <router-view />
+      <RouterView v-slot="{ Component, route }">
+        <Transition name="page-fade" mode="out-in">
+          <component :is="Component" :key="route.name ?? route.path" />
+        </Transition>
+      </RouterView>
     </q-page-container>
     <q-footer class="main-footer">
       <div class="main-footer__inner">
@@ -21,28 +32,38 @@
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
 import { useUserStore } from '@/store/userStore';
+import { RouterNames } from '@/router/routerNames';
 
 const router = useRouter();
+const route = useRoute();
 const authStore = useAuthStore();
 const userStore = useUserStore();
 
 const currentYear = new Date().getFullYear();
 
+function goToProfile() {
+  router.push({ name: RouterNames.Profile });
+}
+
 function handleLogout() {
   authStore.logout();
   userStore.clearUser();
-  router.push({ name: 'login' });
+  router.push({ name: RouterNames.Login });
 }
 </script>
 <style lang="scss" scoped>
 .main-layout {
+  background-color: white;
+}
+
+.main-layout__header-inner {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  background-color: white;
+  gap: 20px;
 }
 
 .main-footer {
@@ -68,5 +89,16 @@ function handleLogout() {
 
 .main-footer__theme {
   opacity: 0.9;
+}
+
+:deep(.page-fade-enter-active),
+:deep(.page-fade-leave-active) {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+:deep(.page-fade-enter-from),
+:deep(.page-fade-leave-to) {
+  opacity: 0;
+  transform: translateY(8px);
 }
 </style>
