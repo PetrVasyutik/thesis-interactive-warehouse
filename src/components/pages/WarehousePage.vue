@@ -182,6 +182,7 @@ const isDocsOpen = ref(false);
         <div class="warehouse__chat-input">
           <q-input
             v-model="newMessage"
+            class="warehouse__chat-field"
             dense
             standout
             placeholder="Сообщение для коллег по складу..."
@@ -373,8 +374,14 @@ const isDocsOpen = ref(false);
 
   &__chat-input {
     display: flex;
+    width: 100%;
+    align-items: stretch;
     gap: 8px;
     margin-top: 8px;
+  }
+
+  &__chat-field {
+    flex: 1;
   }
 
   &__chat-send {
