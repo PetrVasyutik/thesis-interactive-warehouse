@@ -5,6 +5,10 @@ import './style.css';
 import App from './App.vue';
 import router from './router';
 import 'quasar/dist/quasar.css';
+import { setupMockChatServer } from './websocket/mockChatServer';
+
+// Для дипломного демо используем mock WebSocket-сервер чата
+setupMockChatServer();
 
 const app = createApp(App);
 const pinia = createPinia();

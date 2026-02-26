@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref } from 'vue';
-import { QBtn, QIcon } from 'quasar';
+import { QBtn, QIcon, QInput } from 'quasar';
 import { useWarehouseCanvas } from '../../composables/useWarehouseCanvas';
+import { useWarehouseChat } from '@/composables/useWarehouseChat';
 
 // Берём containerRef из composable, чтобы он создавал/уничтожал Konva-движок
 const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary, unassignedPallets } =
   useWarehouseCanvas();
+
+const { messages, newMessage, isConnected, sendMessage } = useWarehouseChat();
 
 const isDocsOpen = ref(false);
 </script>
@@ -148,7 +151,51 @@ const isDocsOpen = ref(false);
       </div>
     </div>
     </div>
-
+    <div class="warehouse__chat">
+        <div class="warehouse__chat-header">
+          <h2 class="warehouse__info-title">Чат смены</h2>
+          <span
+            class="warehouse__chat-status"
+            :class="{ 'warehouse__chat-status--online': isConnected }"
+          >
+            {{ isConnected ? 'online' : 'offline' }}
+          </span>
+        </div>
+        <div class="warehouse__chat-messages">
+          <div
+            v-for="(msg, index) in messages"
+            :key="index"
+            class="warehouse__chat-message"
+          >
+            <div class="warehouse__chat-message-header">
+              <span class="warehouse__chat-author">{{ msg.author }}</span>
+              <span v-if="msg.role" class="warehouse__chat-role"> — {{ msg.role }}</span>
+            </div>
+            <div class="warehouse__chat-text">
+              {{ msg.text }}
+            </div>
+          </div>
+          <div v-if="messages.length === 0" class="warehouse__chat-empty">
+            Сообщений пока нет. Напишите первое сообщение для смены.
+          </div>
+        </div>
+        <div class="warehouse__chat-input">
+          <q-input
+            v-model="newMessage"
+            dense
+            standout
+            placeholder="Сообщение для коллег по складу..."
+            @keyup.enter="sendMessage"
+          />
+          <q-btn
+            color="primary"
+            label="Отправить"
+            :disable="!newMessage.trim()"
+            class="warehouse__chat-send"
+            @click="sendMessage"
+          />
+        </div>
+      </div>
 
   </div>
 </template>
@@ -254,6 +301,84 @@ const isDocsOpen = ref(false);
   &__blocks-item {
     font-size: 14px;
     margin-bottom: 4px;
+  }
+
+  &__chat {
+    margin-top: 24px;
+    padding: 12px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 600px;
+    position: fixed;
+    bottom: 50px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  &__chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__chat-status {
+    font-size: 12px;
+    color: #999;
+  }
+
+  &__chat-status--online {
+    color: #2e7d32;
+  }
+
+  &__chat-messages {
+    max-height: 180px;
+    overflow-y: auto;
+    padding-right: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__chat-message {
+    font-size: 13px;
+    line-height: 1.3;
+    padding: 4px 6px;
+    border-radius: 4px;
+    background-color: #fafafa;
+  }
+
+  &__chat-message-header {
+    font-weight: 600;
+    margin-bottom: 2px;
+  }
+
+  &__chat-role {
+    font-weight: 400;
+    color: #666;
+  }
+
+  &__chat-text {
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  &__chat-empty {
+    font-size: 12px;
+    color: #999;
+    font-style: italic;
+  }
+
+  &__chat-input {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  &__chat-send {
+    white-space: nowrap;
   }
 
   .warehouse-docs-enter-active,
