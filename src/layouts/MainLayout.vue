@@ -2,17 +2,29 @@
   <q-layout view="hHh lpR fFf">
     <q-header class="main-layout q-pa-lg">
       <div class="main-layout__header-inner">
-        <q-btn
-          v-if="route.name !== RouterNames.Profile"
-          color="primary"
-          label="Личный кабинет"
-          @click="goToProfile"
-        />
-        <q-btn
-          color="primary"
-          label="Выйти"
-          @click="handleLogout"
-        />
+        <div class="main-layout__header-left">
+          <q-btn
+            v-if="route.name !== RouterNames.Profile"
+            color="primary"
+            :label="$t('common.profile')"
+            @click="goToProfile"
+          />
+        </div>
+        <div class="main-layout__header-right">
+          <q-btn
+            color="primary"
+            no-caps
+            class="main-layout__lang-toggle"
+            @click="toggleLocale"
+          >
+            {{ locale === 'ru' ? 'EN' : 'RU' }}
+          </q-btn>
+          <q-btn
+            color="primary"
+            :label="$t('common.logout')"
+            @click="handleLogout"
+          />
+        </div>
       </div>
     </q-header>
     <q-page-container>
@@ -24,8 +36,12 @@
     </q-page-container>
     <q-footer class="main-footer">
       <div class="main-footer__inner">
-        <span class="main-footer__copyright">© {{ currentYear }} Интерактивный склад</span>
-        <span class="main-footer__theme">Визуализация складских помещений</span>
+        <span class="main-footer__copyright">
+          © {{ currentYear }} {{ $t('common.appTitle') }}
+        </span>
+        <span class="main-footer__theme">
+          {{ $t('common.appSubtitle') }}
+        </span>
       </div>
     </q-footer>
   </q-layout>
@@ -33,6 +49,7 @@
 
 <script setup lang="ts">
 import { useRoute, useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import { useAuthStore } from '@/store/authStore';
 import { useUserStore } from '@/store/userStore';
 import { RouterNames } from '@/router/routerNames';
@@ -41,6 +58,8 @@ const router = useRouter();
 const route = useRoute();
 const authStore = useAuthStore();
 const userStore = useUserStore();
+
+const { locale } = useI18n();
 
 const currentYear = new Date().getFullYear();
 
@@ -53,6 +72,10 @@ function handleLogout() {
   userStore.clearUser();
   router.push({ name: RouterNames.Login });
 }
+
+function toggleLocale() {
+  locale.value = locale.value === 'ru' ? 'en' : 'ru';
+}
 </script>
 <style lang="scss" scoped>
 .main-layout {
@@ -61,9 +84,20 @@ function handleLogout() {
 
 .main-layout__header-inner {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
   gap: 20px;
+}
+
+.main-layout__header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.main-layout__lang-toggle {
+  min-width: auto;
+  padding: 0 12px;
 }
 
 .main-footer {

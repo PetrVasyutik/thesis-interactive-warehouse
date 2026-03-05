@@ -15,7 +15,7 @@ const isDocsOpen = ref(false);
 
 <template>
   <div class="warehouse">
-    <h1 class="warehouse__title">Склад</h1>
+    <h1 class="warehouse__title">{{ $t('warehouse.title') }}</h1>
     <div class="warehouse__wrapper">
       <div class="warehouse__documentation">
         <q-btn
@@ -26,7 +26,7 @@ const isDocsOpen = ref(false);
           color="primary"
           @click="isDocsOpen = !isDocsOpen"
         >
-          <span>Документация</span>
+          <span>{{ $t('warehouse.docs') }}</span>
           <q-icon
             name="keyboard_arrow_right"
             class="warehouse__docs-toggle-icon"
@@ -44,26 +44,19 @@ const isDocsOpen = ref(false);
             key="docs-interactions"
             class="warehouse-docs-item"
           >
-            <p><strong>Взаимодействие с зоной и стеллажами:</strong></p>
+            <p><strong>{{ $t('warehouse.docsInteractionsTitle') }}</strong></p>
             <ul>
               <li>
-                <strong>Клик по названию зоны</strong> (например, «Зона A», «Зона B») — справа
-                отображается информация по <strong>зоне целиком</strong>: общее количество паллет
-                в зоне, максимальная вместимость и процент заполненности.
+                {{ $t('warehouse.docsZoneClick') }}
               </li>
               <li>
-                <strong>Клик по названию стеллажа</strong> под прямоугольником (например,
-                «Стеллаж A-1») — справа показывается информация по <strong>конкретному стеллажу</strong>
-                (паллета на стеллаже) и одновременно по его зоне (суммарные паллеты и процент).
+                {{ $t('warehouse.docsShelfClick') }}
               </li>
               <li>
-                <strong>Левый клик по прямоугольнику стеллажа</strong> — добавить паллету
-                на стеллаж (если есть нераспределённые паллеты и стеллаж ещё не достиг
-                максимальной вместимости).
+                {{ $t('warehouse.docsShelfLeft') }}
               </li>
               <li>
-                <strong>Правый клик по прямоугольнику стеллажа</strong> — снять паллету
-                со стеллажа и вернуть её в пул нераспределённых паллет (пока на стеллаже есть паллеты).
+                {{ $t('warehouse.docsShelfRight') }}
               </li>
             </ul>
           </div>
@@ -73,16 +66,13 @@ const isDocsOpen = ref(false);
             key="docs-pan"
             class="warehouse-docs-item"
           >
-            <p><strong>Панорама склада:</strong></p>
+            <p><strong>{{ $t('warehouse.docsPanTitle') }}</strong></p>
             <ul>
               <li>
-                <strong>Перетаскивание за пустую область</strong> — зажмите левую кнопку мыши на
-                свободном месте карты (не на зоне и не на стеллаже) и тяните: карта склада будет
-                двигаться.
+                {{ $t('warehouse.docsPanEmpty') }}
               </li>
               <li>
-                <strong>Средняя кнопка мыши</strong> (колесо) — можно панорамировать с любой точки:
-                зажмите колесо и двигайте мышь.
+                {{ $t('warehouse.docsPanMiddle') }}
               </li>
             </ul>
           </div>
@@ -92,23 +82,23 @@ const isDocsOpen = ref(false);
             key="docs-colors"
             class="warehouse-docs-item"
           >
-            <p><strong>Цветовое кодирование стеллажей (по проценту заполнения):</strong></p>
+            <p><strong>{{ $t('warehouse.docsColorsTitle') }}</strong></p>
             <ul>
               <li>
-                <span style="color: #81c784; font-weight: 600;">Зелёный</span> — заполненность
-                &lt; 50% (свободно).
+                <span style="color: #81c784; font-weight: 600;">{{ $t('warehouse.docsColorGreen').split(' — ')[0] }}</span>
+                — {{ $t('warehouse.docsColorGreen').split(' — ')[1] }}
               </li>
               <li>
-                <span style="color: #ffeb3b; font-weight: 600;">Жёлтый</span> — 50–80% (средняя
-                загрузка).
+                <span style="color: #ffeb3b; font-weight: 600;">{{ $t('warehouse.docsColorYellow').split(' — ')[0] }}</span>
+                — {{ $t('warehouse.docsColorYellow').split(' — ')[1] }}
               </li>
               <li>
-                <span style="color: #ffb74d; font-weight: 600;">Оранжевый</span> — 80–95% (почти
-                заполнено).
+                <span style="color: #ffb74d; font-weight: 600;">{{ $t('warehouse.docsColorOrange').split(' — ')[0] }}</span>
+                — {{ $t('warehouse.docsColorOrange').split(' — ')[1] }}
               </li>
               <li>
-                <span style="color: #e57373; font-weight: 600;">Красный</span> — &gt; 95%
-                (переполнено).
+                <span style="color: #e57373; font-weight: 600;">{{ $t('warehouse.docsColorRed').split(' — ')[0] }}</span>
+                — {{ $t('warehouse.docsColorRed').split(' — ')[1] }}
               </li>
             </ul>
           </div>
@@ -117,43 +107,68 @@ const isDocsOpen = ref(false);
       <div ref="containerRef" class="warehouse__container"></div>
     <div class="warehouse__info">
       <div class="warehouse__unassigned">
-        <h2 class="warehouse__info-title">Нераспределённые паллеты</h2>
+        <h2 class="warehouse__info-title">{{ $t('warehouse.unassignedTitle') }}</h2>
         <div class="warehouse__unassigned-count">{{ unassignedPallets }}</div>
       </div>
       <div class="warehouse__blocks-summary">
-        <h2 class="warehouse__info-title">Блоки</h2>
+        <h2 class="warehouse__info-title">{{ $t('warehouse.blocksTitle') }}</h2>
         <ul class="warehouse__blocks-list">
           <li
             v-for="block in blocksSummary"
             :key="block.blockName"
             class="warehouse__blocks-item"
           >
-            <strong>{{ block.blockName }}</strong>:
-            {{ block.currentPallets }} / {{ block.maxCapacity }} паллет
+            <strong>{{ $t('warehouse.blockLabel', { index: block.blockIndex }) }}</strong>:
+            {{ block.currentPallets }} / {{ block.maxCapacity }}
+            {{ $t('warehouse.blocksItemPalletWord') }}
             ({{ block.fillPercent }}%)
           </li>
         </ul>
       </div>
       <div v-if="selectedZoneInfo" class="warehouse__zone-info">
         <h2 class="warehouse__info-title">
-          {{ selectedZoneInfo.blockName }} — {{ selectedZoneInfo.zoneName }}
+          {{ $t('warehouse.blockLabel', { index: selectedZoneInfo.blockIndex }) }}
+          —
+          {{ $t('warehouse.zoneLabel', { index: selectedZoneInfo.zoneId }) }}
         </h2>
-        <div>Паллет по зоне: {{ selectedZoneInfo.zoneCurrentPallets }} / {{ selectedZoneInfo.zoneMaxCapacity }}</div>
-        <div>Заполненность зоны: {{ selectedZoneInfo.zoneFillPercent }}%</div>
+        <div>
+          {{ $t('warehouse.zonePalletsLabel') }}:
+          {{ selectedZoneInfo.zoneCurrentPallets }} /
+          {{ selectedZoneInfo.zoneMaxCapacity }}
+        </div>
+        <div>
+          {{ $t('warehouse.zoneFillLabel') }}: {{ selectedZoneInfo.zoneFillPercent }}%
+        </div>
       </div>
       <div v-if="selectedShelfInfo" class="warehouse__shelf-info">
         <h2 class="warehouse__info-title">
-          {{ selectedShelfInfo.blockName }} — {{ selectedShelfInfo.zoneName }} — {{ selectedShelfInfo.shelf.name }}
+          {{ $t('warehouse.blockLabel', { index: selectedShelfInfo.blockIndex }) }}
+          —
+          {{ $t('warehouse.zoneLabel', { index: selectedShelfInfo.zoneId }) }}
+          —
+          {{ $t('warehouse.shelfLabel', { zone: selectedShelfInfo.zoneId, index: selectedShelfInfo.shelfIndex }) }}
         </h2>
-        <div>На стеллаже: {{ selectedShelfInfo.shelf.currentPallets }} / {{ selectedShelfInfo.shelf.maxCapacity }} паллет</div>
-        <div>По зоне: {{ selectedShelfInfo.zoneCurrentPallets }} / {{ selectedShelfInfo.zoneMaxCapacity }} паллет</div>
-        <div>Заполненность зоны: {{ selectedShelfInfo.zoneFillPercent }}%</div>
+        <div>
+          {{ $t('warehouse.shelfOnShelfLabel') }}:
+          {{ selectedShelfInfo.shelf.currentPallets }} /
+          {{ selectedShelfInfo.shelf.maxCapacity }}
+          {{ $t('warehouse.blocksItemPalletWord') }}
+        </div>
+        <div>
+          {{ $t('warehouse.shelfZoneLabel') }}:
+          {{ selectedShelfInfo.zoneCurrentPallets }} /
+          {{ selectedShelfInfo.zoneMaxCapacity }}
+          {{ $t('warehouse.blocksItemPalletWord') }}
+        </div>
+        <div>
+          {{ $t('warehouse.zoneFillLabel') }}: {{ selectedShelfInfo.zoneFillPercent }}%
+        </div>
       </div>
     </div>
     </div>
     <div class="warehouse__chat">
         <div class="warehouse__chat-header">
-          <h2 class="warehouse__info-title">Чат смены</h2>
+          <h2 class="warehouse__info-title">{{ $t('warehouse.chatTitle') }}</h2>
           <span
             class="warehouse__chat-status"
             :class="{ 'warehouse__chat-status--online': isConnected }"
@@ -176,7 +191,7 @@ const isDocsOpen = ref(false);
             </div>
           </div>
           <div v-if="messages.length === 0" class="warehouse__chat-empty">
-            Сообщений пока нет. Напишите первое сообщение для смены.
+            {{ $t('warehouse.chatEmpty') }}
           </div>
         </div>
         <div class="warehouse__chat-input">
@@ -185,12 +200,12 @@ const isDocsOpen = ref(false);
             class="warehouse__chat-field"
             dense
             standout
-            placeholder="Сообщение для коллег по складу..."
+            :placeholder="$t('warehouse.chatPlaceholder')"
             @keyup.enter="sendMessage"
           />
           <q-btn
             color="primary"
-            label="Отправить"
+            :label="$t('login.submit')"
             :disable="!newMessage.trim()"
             class="warehouse__chat-send"
             @click="sendMessage"

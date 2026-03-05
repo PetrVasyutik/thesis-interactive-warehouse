@@ -1,5 +1,6 @@
 import Konva from 'konva';
 import type { Warehouse, Shelf, Zone } from '../models/warehouse';
+import { i18n } from '@/i18n';
 
 // Отвечает только за работу с Konva (Stage/Layer/Shapes), без бизнес-логики
 export class WarehouseEngine {
@@ -125,10 +126,13 @@ export class WarehouseEngine {
       const centerX = (bounds.minX + bounds.maxX) / 2;
       const labelY = bounds.minY - 40;
 
+      const indexMatch = blockName.match(/\d+/);
+      const index = indexMatch ? Number(indexMatch[0]) : blockName;
+
       const blockLabel = new Konva.Text({
         x: centerX,
         y: labelY,
-        text: blockName,
+        text: i18n.global.t('warehouse.blockLabel', { index }),
         fontSize: 16,
         fontFamily: 'Arial',
         fill: '#333',
@@ -194,7 +198,7 @@ export class WarehouseEngine {
     const zoneLabel = new Konva.Text({
       x: minX - padding + 8,
       y: minY - padding + 2,
-      text: zone.name,
+      text: this.getZoneLabel(zone),
       fontSize: 16,
       fontFamily: 'Arial',
       fill: '#333',
@@ -209,7 +213,7 @@ export class WarehouseEngine {
 
     this.layer.add(zoneRect, zoneLabel);
 
-    zone.shelves.forEach((shelf) => {
+    zone.shelves.forEach((shelf, index) => {
       const fill = this.getFillByShelfLoad(shelf);
 
       const rect = new Konva.Rect({
@@ -241,7 +245,7 @@ export class WarehouseEngine {
         x: shelf.x,
         y: shelf.y + shelf.height + 5,
         width: shelf.width,
-        text: shelf.name,
+        text: this.getShelfLabel(zone, index + 1),
         fontSize: 12,
         fontFamily: 'Arial',
         fill: '#333',
@@ -257,6 +261,29 @@ export class WarehouseEngine {
 
       this.layer.add(rect, shelfLabel);
     });
+  }
+
+  private getZoneLabel(zone: Zone): string {
+    const localeValue =
+      typeof i18n.global.locale === 'string'
+        ? i18n.global.locale
+        : i18n.global.locale.value;
+
+    if (localeValue === 'ru') {
+      return `Зона ${zone.id}`;
+    }
+    return `Zone ${zone.id}`;
+  }
+
+  private getShelfLabel(zone: Zone, shelfIndex: number): string {
+    const localeValue = typeof i18n.global.locale === 'string'
+      ? i18n.global.locale
+      : i18n.global.locale.value;
+
+    if (localeValue === 'ru') {
+      return `Стеллаж ${zone.id}-${shelfIndex}`;
+    }
+    return `Shelf ${zone.id}-${shelfIndex}`;
   }
 
   destroy(): void {

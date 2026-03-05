@@ -1,5 +1,6 @@
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import { WarehouseEngine } from '../engine/WarehouseEngine';
+import { useI18n } from 'vue-i18n';
 import {
   applyPersistedState,
   loadPersistedState,
@@ -15,8 +16,7 @@ export function useWarehouseCanvas() {
   /** Выбранная зона (при клике на название зоны); zoneId — для обновления данных после изменения паллет */
   const selectedZoneInfo = ref<{
     zoneId: number;
-    blockName: string;
-    zoneName: string;
+    blockIndex: number;
     zoneCurrentPallets: number;
     zoneMaxCapacity: number;
     zoneFillPercent: number;
@@ -24,8 +24,9 @@ export function useWarehouseCanvas() {
   /** Выбранный стеллаж (при клике на стеллаж): стеллаж + данные по зоне */
   const selectedShelfInfo = ref<{
     shelf: Shelf;
-    blockName: string;
-    zoneName: string;
+    blockIndex: number;
+    zoneId: number;
+    shelfIndex: number;
     zoneCurrentPallets: number;
     zoneMaxCapacity: number;
     zoneFillPercent: number;
@@ -37,12 +38,15 @@ export function useWarehouseCanvas() {
   const blocksSummary = ref<
     {
       blockName: string;
+      blockIndex: number;
       currentPallets: number;
       maxCapacity: number;
       fillPercent: number;
     }[]
   >([]);
   const unassignedPallets = ref(0);
+
+  const { locale } = useI18n();
 
   function createInitialWarehouse(): Warehouse {
     // Несколько зон в виде 3 колонок по 5 зон.
@@ -59,16 +63,15 @@ export function useWarehouseCanvas() {
 
     const makeZone = (
       id: number,
-      name: string,
+      letter: string,
       color: string,
       blockName: string,
       baseX: number,
       baseY: number,
     ) => {
-      const letter = name.replace('Зона ', '');
       const shelves = Array.from({ length: 5 }).map((_, index) => ({
         id: nextShelfId++,
-        name: `Стеллаж ${letter}-${index + 1}`,
+        name: `Shelf ${letter}-${index + 1}`,
         x: baseX + index * (shelfWidth + gapX),
         y: baseY,
         width: shelfWidth,
@@ -79,7 +82,7 @@ export function useWarehouseCanvas() {
 
       return {
         id,
-        name,
+        name: `Zone ${letter}`,
         color,
         blockName,
         shelves,
@@ -92,13 +95,13 @@ export function useWarehouseCanvas() {
 
     for (let col = 0; col < 3; col += 1) {
       const baseX = startColumnX + col * ((shelfWidth + gapX) * 5 + columnGap);
-      const blockName = `Блок ${col + 1}`;
+      const blockName = `Block ${col + 1}`;
       for (let row = 0; row < rowsPerColumn; row += 1) {
         const baseY = firstRowY + row * rowStepY;
-        const zoneName = `Зона ${String.fromCharCode(65 + zoneId - 1)}`; // A, B, C...
+        const letter = String.fromCharCode(65 + zoneId - 1); // A, B, C...
         const color =
           colors[(zoneId - 1) % colors.length] ?? colors[0] ?? '#e3f2fd';
-        zones.push(makeZone(zoneId, zoneName, color, blockName, baseX, baseY));
+        zones.push(makeZone(zoneId, letter, color, blockName, baseX, baseY));
         zoneId += 1;
       }
     }
@@ -143,12 +146,17 @@ export function useWarehouseCanvas() {
         });
       });
 
-      blocksSummary.value = Array.from(totals.entries()).map(([blockName, { current, max }]) => ({
-        blockName,
-        currentPallets: current,
-        maxCapacity: max,
-        fillPercent: max > 0 ? Math.round((current / max) * 100) : 0,
-      }));
+      blocksSummary.value = Array.from(totals.entries()).map(([blockName, { current, max }]) => {
+        const indexMatch = blockName.match(/\d+/);
+        const blockIndex = indexMatch ? Number(indexMatch[0]) : 0;
+        return {
+          blockName,
+          blockIndex,
+          currentPallets: current,
+          maxCapacity: max,
+          fillPercent: max > 0 ? Math.round((current / max) * 100) : 0,
+        };
+      });
       unassignedPallets.value = warehouse.unassignedPallets;
     }
 
@@ -160,14 +168,15 @@ export function useWarehouseCanvas() {
       selectedShelfInfo.value = null;
       const zone = controller.getZoneById(zoneId);
       if (zone) {
+        const match = zone.blockName.match(/\d+/);
+        const blockIndex = match ? Number(match[0]) : 0;
         const zoneCurrentPallets = zone.shelves.reduce((sum, s) => sum + s.currentPallets, 0);
         const zoneMaxCapacity = zone.shelves.reduce((sum, s) => sum + s.maxCapacity, 0);
         const zoneFillPercent =
           zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
         selectedZoneInfo.value = {
           zoneId: zone.id,
-          blockName: zone.blockName,
-          zoneName: zone.name,
+          blockIndex,
           zoneCurrentPallets,
           zoneMaxCapacity,
           zoneFillPercent,
@@ -185,14 +194,18 @@ export function useWarehouseCanvas() {
       const result = controller.getShelfAndZone(shelfId);
       if (result) {
         const { shelf, zone } = result;
+        const match = zone.blockName.match(/\d+/);
+        const blockIndex = match ? Number(match[0]) : 0;
+        const shelfIndex = zone.shelves.findIndex((s) => s.id === shelf.id) + 1;
         const zoneCurrentPallets = zone.shelves.reduce((sum, s) => sum + s.currentPallets, 0);
         const zoneMaxCapacity = zone.shelves.reduce((sum, s) => sum + s.maxCapacity, 0);
         const zoneFillPercent =
           zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
         selectedShelfInfo.value = {
           shelf,
-          blockName: zone.blockName,
-          zoneName: zone.name,
+          blockIndex,
+          zoneId: zone.id,
+          shelfIndex,
           zoneCurrentPallets,
           zoneMaxCapacity,
           zoneFillPercent,
@@ -260,6 +273,17 @@ export function useWarehouseCanvas() {
 
     // Инициализируем сводку по блокам при первом монтировании
     refreshBlocksSummary();
+
+    // При смене языка — перерисовать канвас, чтобы надписи блоков/зон обновились
+    // (используется глобальный i18n внутри WarehouseEngine)
+    watch(
+      () => locale.value,
+      () => {
+        if (controller && engine) {
+          engine.renderWarehouse(controller.getWarehouse());
+        }
+      },
+    );
   }
 
   function unmount() {

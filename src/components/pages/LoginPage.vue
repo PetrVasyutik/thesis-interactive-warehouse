@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/store/authStore';
 import { useUserStore } from '@/store/userStore';
@@ -16,9 +17,14 @@ const isPwd = ref(true);
 
 const MOCK_USER = { username: 'admin', password: 'admin123' };
 
+const { t } = useI18n();
+
 const schema = yup.object({
-  userName: yup.string().required('Введите логин'),
-  password: yup.string().required('Введите пароль').min(6, 'Пароль не менее 6 символов'),
+  userName: yup.string().required(t('login.errorRequiredLogin')),
+  password: yup
+    .string()
+    .required(t('login.errorRequiredPassword'))
+    .min(6, t('login.errorPasswordMin')),
 });
 
 const { handleSubmit, errors, defineField } = useForm({
@@ -37,11 +43,18 @@ const currentYear = new Date().getFullYear();
 const onSubmit = handleSubmit((values) => {
   errorMessage.value = '';
   if (values.userName === MOCK_USER.username && values.password === MOCK_USER.password) {
-    userStore.setUser('Иван', 'admin@example.com', 'Иванов Иван Иванович', '+72345678900', 'Отдел учета', 'Кладовщик');
+    userStore.setUser(
+      'Иван',
+      'admin@example.com',
+      'Иванов Иван Иванович',
+      '+72345678900',
+      'Отдел учета',
+      'Кладовщик',
+    );
     authStore.login('fake-token-123');
     router.push('/profile');
   } else {
-    errorMessage.value = 'Неверное имя пользователя или пароль';
+    errorMessage.value = t('login.errorInvalidCredentials');
   }
 });
 
@@ -55,13 +68,13 @@ function handleLogout() {
   <div class="login-page">
     <q-card class="login-card" flat bordered>
       <q-card-section class="q-pa-lg">
-        <h1 class="q-mt-none q-md-mb text-primary">Вход в систему</h1>
+        <h1 class="q-mt-none q-md-mb text-primary">{{ $t('login.title') }}</h1>
         <form @submit.prevent="onSubmit" class="q-gutter-md">
           <q-input
             v-model="userNameAttr"
             v-bind="userNameMeta"
             outlined
-            label="Логин"
+            :label="$t('login.loginLabel')"
             type="text"
             autocomplete="username"
             :error="!!errors.userName"
@@ -72,7 +85,7 @@ function handleLogout() {
             v-model="passwordAttr"
             v-bind="passwordMeta"
             outlined
-            label="Пароль"
+            :label="$t('login.passwordLabel')"
             :type="isPwd ? 'password' : 'text'"
             autocomplete="current-password"
             :error="!!errors.password"
@@ -91,7 +104,7 @@ function handleLogout() {
             <q-btn
               type="submit"
               color="primary"
-              label="Войти"
+              :label="$t('login.submit')"
               unelevated
               class="full-width"
             />
@@ -101,8 +114,12 @@ function handleLogout() {
       </q-card-section>
     </q-card>
     <footer class="login-footer">
-      <span class="login-footer__copyright">© {{ currentYear }} Интерактивный склад</span>
-      <span class="login-footer__theme">Визуализация складских помещений</span>
+      <span class="login-footer__copyright">
+        © {{ currentYear }} {{ $t('common.appTitle') }}
+      </span>
+      <span class="login-footer__theme">
+        {{ $t('common.appSubtitle') }}
+      </span>
     </footer>
   </div>
 </template>
