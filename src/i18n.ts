@@ -56,6 +56,7 @@ const messages = {
       chatTitle: 'Чат смены',
       chatPlaceholder: 'Сообщение для коллег по складу...',
       chatEmpty: 'Сообщений пока нет. Напишите первое сообщение для смены.',
+      chatSend: 'Отправить',
     },
   },
   en: {
@@ -113,6 +114,7 @@ const messages = {
       chatTitle: 'Shift chat',
       chatPlaceholder: 'Message to warehouse colleagues...',
       chatEmpty: 'No messages yet. Write the first one for the shift.',
+      chatSend: 'Send',
     },
   },
 };
@@ -123,4 +125,3 @@ export const i18n = createI18n({
   fallbackLocale: 'en',
   messages,
 });
-

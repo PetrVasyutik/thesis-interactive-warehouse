@@ -205,7 +205,7 @@ const isDocsOpen = ref(false);
           />
           <q-btn
             color="primary"
-            :label="$t('login.submit')"
+            :label="$t('warehouse.chatSend')"
             :disable="!newMessage.trim()"
             class="warehouse__chat-send"
             @click="sendMessage"
