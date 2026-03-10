@@ -18,6 +18,15 @@ const profileFields = computed(() => [
   { labelKey: 'profile.phone', value: userStore.phone },
 ]);
 
+const initials = computed(() => {
+  const name = userStore.fullName || '';
+  if (!name) return 'ИИ';
+  const parts = name.trim().split(/\s+/);
+  const first = parts[0]?.[0] ?? '';
+  const second = parts[1]?.[0] ?? '';
+  return (first + second || first || 'ИИ').toUpperCase();
+});
+
 // Константа максимальной вместимости склада:
 // 3 блока * 5 зон * 5 стеллажей * 10 паллет
 const MAX_CAPACITY = 3 * 5 * 5 * 10;
@@ -61,9 +70,12 @@ function goToWarehouse() {
   <div class="profile">
     <h1>{{ $t('profile.title') }}</h1>
     <div class="profile__container">
-    <q-avatar size="120px" class="q-mb-md" :icon="!userStore.avatarUrl ? 'person' : undefined">
-      <img v-if="userStore.avatarUrl" :src="userStore.avatarUrl" alt="Аватар" />
-    </q-avatar>
+      <q-avatar size="120px" class="q-mb-md profile__avatar">
+        <img v-if="userStore.avatarUrl" :src="userStore.avatarUrl" alt="Аватар" />
+        <span v-else class="profile__avatar-initials">
+          {{ initials }}
+        </span>
+      </q-avatar>
     <q-list style="max-width: 350px" class="text-left q-mb-md">
       <q-item v-for="field in profileFields" :key="field.labelKey">
         <q-item-section class="text-weight-bold">{{ $t(field.labelKey) }}: </q-item-section>
@@ -182,6 +194,20 @@ function goToWarehouse() {
     text-align: center;
     margin-top: 20px;
   }
+}
+
+.profile__avatar {
+  background-color: #1976d2;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 40px;
+  font-weight: 600;
+}
+
+.profile__avatar-initials {
+  display: inline-block;
 }
 
 .profile__dashboard {
