@@ -36,7 +36,8 @@ export const useUserStore = defineStore('user', () => {
   const phone = ref('');
   const department = ref('');
   const position = ref('');
-  const avatarUrl = ref('/avatar.jpg');
+  // относительный путь, чтобы корректно работать с base на GitHub Pages
+  const avatarUrl = ref('avatar.jpg');
 
   const saved = loadFromStorage();
   if (saved.name !== undefined) name.value = saved.name;
@@ -46,9 +47,10 @@ export const useUserStore = defineStore('user', () => {
   if (saved.department !== undefined) department.value = saved.department;
   if (saved.position !== undefined) position.value = saved.position;
   if (saved.avatarUrl !== undefined && saved.avatarUrl !== '') {
-    avatarUrl.value = saved.avatarUrl;
+    // Нормализуем старое значение '/avatar.jpg' в относительное
+    avatarUrl.value = saved.avatarUrl.replace(/^\//, '');
   } else if (saved.name !== undefined) {
-    avatarUrl.value = '/avatar.jpg';
+    avatarUrl.value = 'avatar.jpg';
   }
 
   function setUser(
@@ -66,7 +68,7 @@ export const useUserStore = defineStore('user', () => {
     department.value = userDepartment;
     position.value = userPosition;
     if (!avatarUrl.value) {
-      avatarUrl.value = '/avatar.jpg';
+      avatarUrl.value = 'avatar.jpg';
     }
     saveToStorage({
       name: name.value,
