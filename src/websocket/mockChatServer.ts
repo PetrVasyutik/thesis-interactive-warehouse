@@ -21,6 +21,7 @@ interface MockConnection {
 }
 
 const mockConnections: MockConnection[] = [];
+let hasSentWelcome = false;
 
 export function setupMockChatServer(): void {
   if (typeof window === 'undefined') {
@@ -69,11 +70,15 @@ export function setupMockChatServer(): void {
           if (this.onopen) {
             this.onopen(new Event('open'));
           }
-          // Отправим приветственное сообщение в чат
-          this.pushSystemMessage(
-            'Система',
-            'Добро пожаловать в чат смены склада (demo, mock-сервер).',
-          );
+          // Приветственное сообщение отправляем только один раз за сессию,
+          // чтобы оно не дублировалось при нескольких подключениях/переподключениях.
+          if (!hasSentWelcome) {
+            hasSentWelcome = true;
+            this.pushSystemMessage(
+              'Система',
+              'Добро пожаловать в чат смены склада (demo, mock-сервер).',
+            );
+          }
         }, 100);
       } else {
         // Для других URL — оригинальный WebSocket
