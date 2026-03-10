@@ -1,4 +1,4 @@
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref, computed } from 'vue';
 import { useUserStore } from '@/store/userStore';
 import {
   closeWebSocketConnection,
@@ -7,15 +7,18 @@ import {
   isWebSocketConnected,
 } from '@/services/websocketClient';
 import type { WarehouseChatMessage } from '@/types/websocket';
+import { useChatStore } from '@/store/chatStore';
 
 const WS_URL = 'ws://localhost:3001/chat';
 
 export function useWarehouseChat() {
   const userStore = useUserStore();
+  const chatStore = useChatStore();
 
-  const messages = ref<WarehouseChatMessage[]>([]);
   const newMessage = ref('');
   const isConnected = ref(false);
+
+  const messages = computed<WarehouseChatMessage[]>(() => chatStore.messages);
 
   function connect() {
     createWebSocketConnection(WS_URL, {
@@ -27,7 +30,7 @@ export function useWarehouseChat() {
       },
       onMessage(data) {
         if (data.type === 'chat_message') {
-          messages.value.push(data);
+          chatStore.addMessage(data);
         }
       },
       onError() {
@@ -52,7 +55,7 @@ export function useWarehouseChat() {
     };
 
     sendWebSocketMessage(message);
-    messages.value.push(message);
+    chatStore.addMessage(message);
     newMessage.value = '';
   }
 

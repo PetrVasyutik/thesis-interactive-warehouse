@@ -3,6 +3,7 @@ import { computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { useUserStore } from '@/store/userStore';
 import { useWarehouseChat } from '@/composables/useWarehouseChat';
+import { loadPersistedState } from '@/controllers/WarehouseController';
 
 const userStore = useUserStore();
 const router = useRouter();
@@ -17,6 +18,40 @@ const profileFields = computed(() => [
   { labelKey: 'profile.phone', value: userStore.phone },
 ]);
 
+// Константа максимальной вместимости склада:
+// 3 блока * 5 зон * 5 стеллажей * 10 паллет
+const MAX_CAPACITY = 3 * 5 * 5 * 10;
+
+const warehouseSummary = computed(() => {
+  const saved = loadPersistedState();
+  if (!saved) {
+    return {
+      totalCapacity: MAX_CAPACITY,
+      onShelves: 0,
+      unassigned: 0,
+      totalPallets: 0,
+      fillPercent: 0,
+    };
+  }
+
+  const onShelves = (Object.values(saved.shelves) as number[]).reduce(
+    (sum, v) => sum + v,
+    0,
+  );
+  const unassigned = saved.unassignedPallets;
+  const totalPallets = onShelves + unassigned;
+  const fillPercent =
+    MAX_CAPACITY > 0 ? Math.round((onShelves / MAX_CAPACITY) * 100) : 0;
+
+  return {
+    totalCapacity: MAX_CAPACITY,
+    onShelves,
+    unassigned,
+    totalPallets,
+    fillPercent,
+  };
+});
+
 function goToWarehouse() {
   router.push({ name: 'warehouse' });
 }
@@ -25,6 +60,7 @@ function goToWarehouse() {
 <template>
   <div class="profile">
     <h1>{{ $t('profile.title') }}</h1>
+    <div class="profile__container">
     <q-avatar size="120px" class="q-mb-md" :icon="!userStore.avatarUrl ? 'person' : undefined">
       <img v-if="userStore.avatarUrl" :src="userStore.avatarUrl" alt="Аватар" />
     </q-avatar>
@@ -34,12 +70,47 @@ function goToWarehouse() {
         <q-item-section>{{ field.value }}</q-item-section>
       </q-item>
     </q-list>
-    <q-btn
+
+    <div class="profile__dashboard">
+      <h2 class="profile__dashboard-title">{{ $t('profile.dashboardTitle') }}</h2>
+      <div class="profile__dashboard-grid">
+        <div class="profile__dashboard-card">
+          <div class="profile__dashboard-label">{{ $t('profile.dashboardTotalCapacity') }}</div>
+          <div class="profile__dashboard-value">
+            {{ warehouseSummary.totalCapacity }}
+          </div>
+        </div>
+        <div class="profile__dashboard-card">
+          <div class="profile__dashboard-label">{{ $t('profile.dashboardOnShelves') }}</div>
+          <div class="profile__dashboard-value">
+            {{ warehouseSummary.onShelves }}
+          </div>
+        </div>
+        <div class="profile__dashboard-card">
+          <div class="profile__dashboard-label">{{ $t('profile.dashboardUnassigned') }}</div>
+          <div class="profile__dashboard-value">
+            {{ warehouseSummary.unassigned }}
+          </div>
+        </div>
+        <div class="profile__dashboard-card">
+          <div class="profile__dashboard-label">{{ $t('profile.dashboardFillPercent') }}</div>
+          <div class="profile__dashboard-value">
+            {{ warehouseSummary.fillPercent }}%
+          </div>
+        </div>
+      </div>
+      <div class="profile__dashboard-btn">
+        <q-btn
       color="primary"
       :label="$t('common.goToWarehouse')"
-      class="q-mb-lg"
+      class="q-mt-md q-mb-lg"
       @click="goToWarehouse"
     />
+      </div>
+
+    </div>
+  </div>
+
 
     <div class="profile__chat">
       <div class="profile__chat-header">
@@ -98,10 +169,64 @@ function goToWarehouse() {
   flex-direction: column;
   align-items: center;
   gap: 16px;
+
+  &__container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 50px;
+  }
+
+  &__dashboard-btn {
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+  }
+}
+
+.profile__dashboard {
+  width: 100%;
+  max-width: 600px;
+  text-align: left;
+  padding: 10px;
+  margin-left: 200px;
+  border: 2px solid rgb(138, 138, 189);
+  border-radius: 5px;
+}
+
+.profile__dashboard-title {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 8px;
+}
+
+.profile__dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.profile__dashboard-card {
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+  background-color: #fafafa;
+  text-align: center;
+}
+
+.profile__dashboard-label {
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 4px;
+}
+
+.profile__dashboard-value {
+  font-size: 18px;
+  font-weight: 600;
 }
 
 .profile__chat {
-  margin-top: 24px;
+  margin-top: 40px;
   padding: 12px;
   border: 1px solid #e0e0e0;
   border-radius: 8px;

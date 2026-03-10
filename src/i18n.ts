@@ -26,6 +26,11 @@ const messages = {
       department: 'Отдел',
       email: 'Email',
       phone: 'Телефон',
+      dashboardTitle: 'Сводка по складу',
+      dashboardTotalCapacity: 'Максимальная вместимость',
+      dashboardOnShelves: 'На стеллажах',
+      dashboardUnassigned: 'Нераспределённые паллеты',
+      dashboardFillPercent: 'Общая заполненность',
     },
     warehouse: {
       title: 'Склад',
@@ -84,6 +89,11 @@ const messages = {
       department: 'Department',
       email: 'Email',
       phone: 'Phone',
+      dashboardTitle: 'Warehouse summary',
+      dashboardTotalCapacity: 'Maximum capacity',
+      dashboardOnShelves: 'On shelves',
+      dashboardUnassigned: 'Unassigned pallets',
+      dashboardFillPercent: 'Overall fill',
     },
     warehouse: {
       title: 'Warehouse',
