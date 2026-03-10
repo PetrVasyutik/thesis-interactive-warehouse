@@ -57,11 +57,6 @@ const onSubmit = handleSubmit((values) => {
     errorMessage.value = t('login.errorInvalidCredentials');
   }
 });
-
-function handleLogout() {
-  authStore.logout();
-  userStore.clearUser();
-};
 </script>
 
 <template>

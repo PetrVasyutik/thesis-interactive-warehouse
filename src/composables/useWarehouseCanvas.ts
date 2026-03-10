@@ -219,35 +219,42 @@ export function useWarehouseCanvas() {
       if (!controller) {
         return;
       }
+
       if (selectedShelfInfo.value) {
         const result = controller.getShelfAndZone(selectedShelfInfo.value.shelf.id);
         if (result) {
           const { shelf, zone } = result;
+          const match = zone.blockName.match(/\d+/);
+          const blockIndex = match ? Number(match[0]) : 0;
+          const shelfIndex = zone.shelves.findIndex((s) => s.id === shelf.id) + 1;
           const zoneCurrentPallets = zone.shelves.reduce((sum, s) => sum + s.currentPallets, 0);
           const zoneMaxCapacity = zone.shelves.reduce((sum, s) => sum + s.maxCapacity, 0);
           const zoneFillPercent =
             zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
           selectedShelfInfo.value = {
             shelf,
-            blockName: zone.blockName,
-            zoneName: zone.name,
+            blockIndex,
+            zoneId: zone.id,
+            shelfIndex,
             zoneCurrentPallets,
             zoneMaxCapacity,
             zoneFillPercent,
           };
         }
       }
+
       if (selectedZoneInfo.value) {
         const zone = controller.getZoneById(selectedZoneInfo.value.zoneId);
         if (zone) {
+          const match = zone.blockName.match(/\d+/);
+          const blockIndex = match ? Number(match[0]) : 0;
           const zoneCurrentPallets = zone.shelves.reduce((sum, s) => sum + s.currentPallets, 0);
           const zoneMaxCapacity = zone.shelves.reduce((sum, s) => sum + s.maxCapacity, 0);
           const zoneFillPercent =
             zoneMaxCapacity > 0 ? Math.round((zoneCurrentPallets / zoneMaxCapacity) * 100) : 0;
           selectedZoneInfo.value = {
             zoneId: zone.id,
-            blockName: zone.blockName,
-            zoneName: zone.name,
+            blockIndex,
             zoneCurrentPallets,
             zoneMaxCapacity,
             zoneFillPercent,

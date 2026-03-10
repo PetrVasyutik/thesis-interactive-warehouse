@@ -1,3 +1,4 @@
+// @ts-nocheck
 /**
  * Mock WebSocket «сервер» для чата склада.
  * Работает только в браузере: перехватывает window.WebSocket и

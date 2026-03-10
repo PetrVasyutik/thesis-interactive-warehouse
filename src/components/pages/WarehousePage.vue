@@ -8,6 +8,10 @@ import { useWarehouseChat } from '@/composables/useWarehouseChat';
 const { containerRef, selectedZoneInfo, selectedShelfInfo, blocksSummary, unassignedPallets } =
   useWarehouseCanvas();
 
+// Используем, чтобы TypeScript не ругался на "непрочитанное" значение,
+// хотя реальное использование происходит в шаблоне
+void containerRef;
+
 const { messages, newMessage, isConnected, sendMessage } = useWarehouseChat();
 
 const isDocsOpen = ref(false);
